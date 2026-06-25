@@ -3,52 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
+    <title>Michael's Portfolio</title>
     <style>
-        :root { --glow-color: #00d4ff; }
+        /* Modern font stack for sharpness */
         body { 
-            margin: 0; background: #0a0a0a; color: white; 
-            font-family: 'Segoe UI', sans-serif; overflow-x: hidden;
+            margin: 0; 
+            background: #0a0a0a; 
+            color: #ffffff; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden; /* Keeps the canvas contained */
         }
-        /* Mouse-interactive Background */
-        #bg { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), #1a1a2e, #0a0a0a);
-            z-index: -1; transition: background 0.2s ease;
+        
+        #canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+
+        main { 
+            position: relative; 
+            max-width: 800px; 
+            margin: 20vh auto; 
+            padding: 20px; 
+            pointer-events: none; /* Allows mouse to interact with canvas behind text */
         }
-        main { max-width: 800px; margin: 100px auto; padding: 20px; }
-        h1 { font-size: 3rem; font-weight: 800; text-shadow: 0 0 10px var(--glow-color); }
+
+        h1 { 
+            font-weight: 300; /* Thin/Light weight instead of bold */
+            font-size: 3.5rem; 
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
         .project-card { 
-            background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 20px; 
-            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
-            transition: 0.3s; margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.03); 
+            padding: 25px; 
+            border-radius: 12px; 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            margin-top: 40px;
+            pointer-events: auto; /* Re-enable for links */
         }
-        .project-card:hover { 
-            transform: translateY(-10px); border-color: var(--glow-color);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); 
-        }
-        a { color: var(--glow-color); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="bg"></div>
+    <canvas id="canvas"></canvas>
     <main>
-        <h1>Hello, I'm [Your Name]</h1>
-        <p>Building high-performance, beautiful digital experiences.</p>
+        <h1>hey, im Michael</h1>
+        <p>Building clean, high-performance digital experiences.</p>
         
         <div class="project-card">
-            <h3>My Amazing Project</h3>
-            <p>This is where you describe your project with bold intent. It looks great in dark mode.</p>
-            <a href="#">View Project →</a>
+            <h3>Featured Project</h3>
+            <p>A description of your work.</p>
         </div>
     </main>
 
     <script>
-        document.addEventListener('mousemove', (e) => {
-            const bg = document.getElementById('bg');
-            bg.style.setProperty('--x', (e.clientX / window.innerWidth) * 100 + '%');
-            bg.style.setProperty('--y', (e.clientY / window.innerHeight) * 100 + '%');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const mouse = { x: null, y: null };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
         });
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (mouse.x) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 150) { // Interaction radius
+                        this.x -= dx * 0.02;
+                        this.y -= dy * 0.02;
+                    }
+                }
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 100; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
     </script>
 </body>
 </html>
